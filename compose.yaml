@@ -1,0 +1,22 @@
+# Runs ghcr.io/egrissino/photoc:latest, or a local build with PHOTOC_IMAGE=photoc:local:
+#   docker build --target local -t photoc:local .
+#   PHOTOC_IMAGE=photoc:local docker compose up
+# then open http://localhost:6080 in a browser.
+services:
+  photoc:
+    image: ${PHOTOC_IMAGE:-ghcr.io/egrissino/photoc:latest}
+    pull_policy: if_not_present
+    init: true
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      # Mesa has no GPU driver in the container, so render in software without probing for one
+      LIBGL_ALWAYS_SOFTWARE: "1"
+      # The container user has no home directory; zenity (GTK) and openbox want a writable one
+      HOME: /tmp
+      NO_AT_BRIDGE: "1"
+    ports:
+      # The VNC session has no password, so only this machine can reach it
+      - 127.0.0.1:6080:6080
+    volumes:
+      - ~/:/local
+    working_dir: /local
