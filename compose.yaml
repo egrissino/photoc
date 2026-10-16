@@ -8,6 +8,7 @@ services:
     pull_policy: if_not_present
     init: true
     user: "${UID:-1000}:${GID:-1000}"
+    hostname: photoc
     environment:
       # Mesa has no GPU driver in the container, so render in software without probing for one
       LIBGL_ALWAYS_SOFTWARE: "1"
