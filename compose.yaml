@@ -16,7 +16,7 @@ services:
       NO_AT_BRIDGE: "1"
     ports:
       # The VNC session has no password, so only this machine can reach it
-      - 127.0.0.1:6080:6080
+      - 6080:6080
     volumes:
       - ~/:/local
     working_dir: /local
