@@ -63,3 +63,13 @@ jobs:
 
     - name: Build
       run: cmake --build build
+
+    # Smoke test: the CLI starts, decodes a JPEG, writes a PNG and reads it back
+    - name: Test
+      run: |
+        set -e
+        cli="$(find build -name photoc-cli.exe | head -n 1)"
+        test -n "$cli"
+        "$cli" --help
+        "$cli" convert assets/photoc-icon.jpg build/smoke.png
+        "$cli" info build/smoke.png --compact
