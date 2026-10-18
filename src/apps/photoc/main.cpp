@@ -4,8 +4,9 @@
 #include "ui/app.h"
 #include "ui/icon_data.h"
 #include "ui/icons.h"
-#include <GL/gl.h>
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
+#include <SDL3/SDL_opengl.h>
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl3.h>

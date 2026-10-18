@@ -2,7 +2,7 @@
 #include "color/convert.h"
 #include "ui/app.h"
 #include "ui/widgets.h"
-#include <GL/gl.h>
+#include <SDL3/SDL_opengl.h>
 #include <imgui.h>
 #include <math.h>
 #include <stdio.h>

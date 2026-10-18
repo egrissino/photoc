@@ -580,7 +580,7 @@ namespace engine
                     name[k] = '_';
                 }
             }
-            char num[16];
+            char num[64];
             snprintf (num, sizeof num, "_%04zu_", i + 1);
             std::string path           = dir + "/" + prefix + num + name + "." + format;
             compose::RenderSettings rs = compose::default_settings ();

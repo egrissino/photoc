@@ -1,7 +1,7 @@
 #include "compose/masks.h"
 #include "ui/app.h"
 #include "ui/widgets.h"
-#include <GL/gl.h>
+#include <SDL3/SDL_opengl.h>
 #include <algorithm>
 #include <imgui.h>
 #include <imgui_internal.h>

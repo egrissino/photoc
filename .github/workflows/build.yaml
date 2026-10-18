@@ -1,0 +1,22 @@
+name: Linux Build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Build
+      run: ./build.sh
+      env:
+          BUILDKIT_PROGRESS: plain

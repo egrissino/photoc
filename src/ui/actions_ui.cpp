@@ -1,3 +1,4 @@
+#include "io/io.h"
 #include "ui/app.h"
 #include "ui/widgets.h"
 #include <functional>
@@ -24,9 +25,7 @@ namespace ui
         {
             return "";
         }
-        std::string p = ini;
-        size_t slash  = p.find_last_of ('/');
-        return (slash == std::string::npos ? std::string () : p.substr (0, slash + 1)) + "actions.json";
+        return std::string (ini, (size_t) (io::path_base (ini) - ini)) + "actions.json";
     }
 
     /* Loads the saved actions (the Default Actions the first time), then saves them whenever they
