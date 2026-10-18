@@ -115,8 +115,8 @@ namespace vec
         out->n_points   = (short) o->pts.size ();
         out->n_contours = (short) o->contours.size ();
         out->points     = o->pts.data ();
-        out->tags       = o->tags.data ();
-        out->contours   = o->contours.data ();
+        out->tags       = reinterpret_cast<unsigned char*> (o->tags.data ());
+        out->contours   = reinterpret_cast<unsigned char*> (o->contours.data ());
         out->flags      = even_odd ? FT_OUTLINE_EVEN_ODD_FILL : FT_OUTLINE_NONE;
     }
 
