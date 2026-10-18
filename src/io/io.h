@@ -36,6 +36,8 @@ namespace io
     bool read_file (const char* path, std::vector<uint8_t>* out, char* err, size_t err_len);
     bool write_file (const char* path, const std::vector<uint8_t>& data, char* err, size_t err_len);
     std::string file_stem (const char* path);
+    /* The part after the last path separator ('/', and also '\' on Windows). */
+    const char* path_base (const char* path);
 
     bool image_to_document (doc::IdSource& ids, const std::string& name, const codecs::Image& img, ImportResult* out,
         char* err, size_t err_len);

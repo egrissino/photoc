@@ -1,7 +1,7 @@
 #include "ui/icons.h"
 
 #include "ui/icon_data.h"
-#include <GL/gl.h>
+#include <SDL3/SDL_opengl.h>
 #include <ctype.h>
 #include <math.h>
 #include <stdlib.h>

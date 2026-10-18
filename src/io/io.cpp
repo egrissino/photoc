@@ -1,12 +1,21 @@
 #include "io/io.h"
 
 #include "psd/psd.h"
+#include <chrono>
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
-#include <time.h>
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <io.h>
+#include <process.h>
+#include <windows.h>
+#else
 #include <unistd.h>
+#endif
 
 namespace io
 {
@@ -16,6 +25,50 @@ namespace io
     using color::ColorMode;
     using color::SampleType;
     using geom::Rect;
+
+    namespace
+    {
+        long process_id ()
+        {
+#ifdef _WIN32
+            return (long) _getpid ();
+#else
+            return (long) getpid ();
+#endif
+        }
+
+        /* Pushes the written bytes to the disk, so the rename never exposes an empty file after a crash. */
+        bool sync_file (FILE* f)
+        {
+#ifdef _WIN32
+            return _commit (_fileno (f)) == 0;
+#else
+            return fsync (fileno (f)) == 0;
+#endif
+        }
+
+        /* Moves `from` over `to`. POSIX rename replaces an existing file; Windows rename refuses to. */
+        bool replace_file (const char* from, const char* to)
+        {
+#ifdef _WIN32
+            return MoveFileExA (from, to, MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
+#else
+            return rename (from, to) == 0;
+#endif
+        }
+    }
+
+    const char* path_base (const char* path)
+    {
+#ifdef _WIN32
+        const char* base = strrchr (path, '/');
+        const char* back = strrchr (path, '\\');
+        base             = back != NULL && (base == NULL || back > base) ? back : base;
+#else
+        const char* base = strrchr (path, '/');
+#endif
+        return base == NULL ? path : base + 1;
+    }
 
     bool read_file (const char* path, std::vector<uint8_t>* out, char* err, size_t err_len)
     {
@@ -46,7 +99,7 @@ namespace io
        half-written file in place of the old one. */
     bool write_file (const char* path, const std::vector<uint8_t>& data, char* err, size_t err_len)
     {
-        std::string tmp = std::string (path) + ".tmp-" + std::to_string ((long) getpid ());
+        std::string tmp = std::string (path) + ".tmp-" + std::to_string (process_id ());
         FILE* f         = fopen (tmp.c_str (), "wb");
         if (f == NULL)
         {
@@ -55,18 +108,18 @@ namespace io
         }
         bool ok = data.empty () || fwrite (data.data (), 1, data.size (), f) == data.size ();
         ok      = fflush (f) == 0 && ok;
-        ok      = fsync (fileno (f)) == 0 && ok;
+        ok      = sync_file (f) && ok;
         ok      = fclose (f) == 0 && ok;
         if (!ok)
         {
             codecs::set_error (err, err_len, "cannot write %s: %s", path, strerror (errno));
-            unlink (tmp.c_str ());
+            remove (tmp.c_str ());
             return false;
         }
-        if (rename (tmp.c_str (), path) != 0)
+        if (!replace_file (tmp.c_str (), path))
         {
             codecs::set_error (err, err_len, "cannot replace %s: %s", path, strerror (errno));
-            unlink (tmp.c_str ());
+            remove (tmp.c_str ());
             return false;
         }
         return true;
@@ -75,8 +128,7 @@ namespace io
     /* "dir/photo.ppm" -> "photo". */
     std::string file_stem (const char* path)
     {
-        const char* base = strrchr (path, '/');
-        base             = base == NULL ? path : base + 1;
+        const char* base = path_base (path);
         const char* dot  = strrchr (base, '.');
         if (dot == NULL || dot == base)
         {
@@ -319,9 +371,7 @@ namespace io
     /* Seconds on a steady clock, for timing file operations. */
     double monotonic_seconds ()
     {
-        struct timespec ts;
-        clock_gettime (CLOCK_MONOTONIC, &ts);
-        return (double) ts.tv_sec + (double) ts.tv_nsec * 1e-9;
+        return std::chrono::duration<double> (std::chrono::steady_clock::now ().time_since_epoch ()).count ();
     }
 
     bool import_bytes (doc::IdSource& ids, const std::string& name, const uint8_t* bytes, size_t len, ImportResult* out,

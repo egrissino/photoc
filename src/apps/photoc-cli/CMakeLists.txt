@@ -5,6 +5,7 @@ target_link_libraries(photoc-cli PRIVATE
   pc_engine
   pc_io
 )
+pc_windows_manifest(photoc-cli)
 
 add_test(NAME cli_run_new COMMAND photoc-cli run --new "{\"width\":300,\"height\":200}"
   --cmd layer.new.layer --params "{\"mode\":\"Multiply\",\"fillNeutral\":true}"

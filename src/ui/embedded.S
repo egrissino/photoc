@@ -1,6 +1,10 @@
 /* Binary assets linked into the program, so it runs without files beside it: the Inter and
    JetBrains Mono fonts (OFL, see assets/fonts) and the app icon. */
+#ifdef _WIN32
+    .section .rdata,"dr"
+#else
     .section .rodata
+#endif
     .balign 16
     .global pc_font_inter_regular
     .global pc_font_inter_regular_end
@@ -31,4 +35,6 @@ pc_font_mono_end:
 pc_app_icon:
     .incbin "assets/photoc-icon.jpg"
 pc_app_icon_end:
+#ifdef __ELF__
     .section .note.GNU-stack,"",@progbits
+#endif

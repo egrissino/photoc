@@ -2,10 +2,10 @@
 
 #include "algo/maxflow.h"
 #include <algorithm>
+#include <chrono>
 #include <math.h>
 #include <stdint.h>
 #include <string.h>
-#include <time.h>
 
 namespace algo
 {
@@ -523,9 +523,7 @@ namespace algo
     /* Seconds on a steady clock, for QuickStats. */
     double quick_clock ()
     {
-        struct timespec ts;
-        clock_gettime (CLOCK_MONOTONIC, &ts);
-        return (double) ts.tv_sec + (double) ts.tv_nsec * 1e-9;
+        return std::chrono::duration<double> (std::chrono::steady_clock::now ().time_since_epoch ()).count ();
     }
 
     int32_t snap_down (int32_t v, int32_t origin, int32_t step)

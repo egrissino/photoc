@@ -7,7 +7,7 @@
 #include "engine/adjust.h"
 #include "engine/brush.h"
 #include "io/io.h"
-#include <GL/gl.h>
+#include <SDL3/SDL_opengl.h>
 #include <ctype.h>
 #include <imgui.h>
 #include <imgui_internal.h>

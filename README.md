@@ -9,6 +9,9 @@ git pull github.com/egrissino/photoc
 docker-compose up -d
 ```
 
+Open the VNC viewer in broswer to access
+`localhost:6080`
+
 ## Build (Docker)
 
 ```sh

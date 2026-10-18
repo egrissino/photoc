@@ -256,7 +256,7 @@ namespace engine
         {
             return fail (err, ErrorKind::Other, "%s", msg);
         }
-        std::string name = path.substr (path.find_last_of ('/') == std::string::npos ? 0 : path.find_last_of ('/') + 1);
+        std::string name = io::path_base (path.c_str ());
         std::vector<std::string> warnings;
         if (!io::contents_from_bytes (s.ids, s.fonts (), name, std::make_shared<const std::vector<uint8_t>> (bytes), c,
                 &warnings, msg, sizeof msg))

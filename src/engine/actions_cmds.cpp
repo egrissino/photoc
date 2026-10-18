@@ -2,7 +2,7 @@
 #include "engine/session.h"
 #include "io/io.h"
 #include <algorithm>
-#include <dirent.h>
+#include <filesystem>
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -587,15 +587,19 @@ namespace engine
                 return bad_params (err, cmd, "can't save as `%s`", format.c_str ());
             }
         }
-        DIR* dir = opendir (source.c_str ());
-        if (dir == NULL)
+        // Paths are UTF-8 everywhere (on Windows through the app manifest), so go through u8 strings
+        std::error_code ec;
+        std::filesystem::directory_iterator dir (
+            std::u8string_view ((const char8_t*) source.data (), source.size ()), ec);
+        if (ec)
         {
             return fail (err, ErrorKind::Other, "can't read the folder %s", source.c_str ());
         }
         std::vector<std::string> files;
-        for (struct dirent* e = readdir (dir); e != NULL; e = readdir (dir))
+        for (const std::filesystem::directory_entry& e : dir)
         {
-            std::string name = e->d_name;
+            std::u8string u8   = e.path ().filename ().u8string ();
+            std::string name ((const char*) u8.data (), u8.size ());
             codecs::Format f;
             size_t n = name.size ();
             bool psd =
@@ -606,7 +610,6 @@ namespace engine
                 files.push_back (name);
             }
         }
-        closedir (dir);
         std::sort (files.begin (), files.end ());
         Value errors = Value::array ();
         size_t done = 0, start_docs = s.doc_count ();
