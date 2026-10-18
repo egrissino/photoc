@@ -1,0 +1,36 @@
+name: Build Windows
+
+on:
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: UCRT64
+        update: true
+        install: git
+        pacboy: >-
+          toolchain:p cmake:p ninja:p pkgconf:p
+          nlohmann-json:p lcms2:p libpng:p libjpeg-turbo:p libtiff:p libwebp:p giflib:p zlib:p
+          freetype:p harfbuzz:p fontconfig:p fribidi:p libunibreak:p
+
+    - name: Configure
+      run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: cmake --build build
