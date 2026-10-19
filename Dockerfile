@@ -17,12 +17,6 @@ RUN git clone --depth 1 --branch v1.92.9b-docking https://github.com/ocornut/img
 
 WORKDIR /src
 
-# Compiles PhotoC from the sources in the build context
-FROM dev AS build
-
-COPY . /src
-RUN cmake -S /src -B /src/build -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build /src/build
-
 # Runtime image, used from a browser through noVNC: docker build --target local -t photoc:local .
 # zenity draws the open and save dialogs (SDL falls back to it when there is no desktop portal)
 FROM ubuntu:noble-20250529 AS local
@@ -40,7 +34,9 @@ RUN mkdir -m 1777 /tmp/.X11-unix
 
 COPY docker/index.html /usr/share/novnc/index.html
 COPY docker/entrypoint.sh /usr/local/bin/photoc-vnc
-COPY --from=build /src/build/src/apps/photoc/photoc /src/build/src/apps/photoc-cli/photoc-cli /usr/local/bin/
+
+COPY apps/photoc /usr/local/bin/
+COPY apps/photoc-cli /usr/local/bin
 
 EXPOSE 6080
 WORKDIR /local

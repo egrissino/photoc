@@ -1,6 +1,6 @@
 # PhotoC (C/C++)
 
-A Linux port of PhotoCraft for Ubuntu 24.04 LTS on X11. If a feature is missing then code it yourself.
+A C port of PhotoCraft with builds for Linux, Windows, and Mac
 
 ## Run with Pre-built image
 

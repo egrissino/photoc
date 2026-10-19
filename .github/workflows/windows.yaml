@@ -35,26 +35,6 @@ jobs:
           nlohmann-json:p lcms2:p libpng:p libjpeg-turbo:p libtiff:p libwebp:p giflib:p zlib:p
           freetype:p harfbuzz:p fontconfig:p fribidi:p libunibreak:p
 
-    # SDL3 and Dear ImGui are built once per version and kept between runs
-    - name: Cache SDL3 and Dear ImGui
-      id: deps-cache
-      uses: actions/cache@v4
-      with:
-        path: deps
-        key: deps-ucrt64-${{ env.SDL_VERSION }}-${{ env.IMGUI_VERSION }}
-
-    - name: Build SDL3
-      if: steps.deps-cache.outputs.cache-hit != 'true'
-      run: |
-        git clone --depth 1 --branch "$SDL_VERSION" https://github.com/libsdl-org/SDL.git deps/SDL
-        cmake -S deps/SDL -B deps/SDL/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST_LIBRARY=OFF -DSDL_VULKAN=OFF -DCMAKE_INSTALL_PREFIX="$(cygpath -m "$PWD/deps/sdl3")"
-        cmake --build deps/SDL/build && cmake --install deps/SDL/build
-        rm -rf deps/SDL
-
-    - name: Fetch Dear ImGui
-      if: steps.deps-cache.outputs.cache-hit != 'true'
-      run: git clone --depth 1 --branch "$IMGUI_VERSION" https://github.com/ocornut/imgui.git deps/imgui
-
     - name: Configure
       run: |
         cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release \

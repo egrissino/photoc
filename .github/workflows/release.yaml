@@ -1,0 +1,142 @@
+# Generate binaries for all linux arch, exe for windows + winarm, look into mac deployment (future)
+# Pushing a v* tag builds every platform and publishes a release with the archives attached.
+# Running it by hand builds and uploads the archives as workflow artifacts without releasing.
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  linux:
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: x86_64
+          - runner: ubuntu-24.04-arm
+            arch: aarch64
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Build
+      run: ./docker-build.sh
+      env:
+        BUILDKIT_PROGRESS: plain
+
+    # The binaries link Ubuntu 24.04 libraries, so they run inside the dev image
+    - name: Test
+      run: |
+        docker run --rm --volume "$PWD:/src" --workdir /src photoc-dev bash -c '
+          set -e
+          apps/photoc-cli --help > /dev/null
+          apps/photoc-cli convert assets/photoc-icon.jpg build/smoke.png
+          apps/photoc-cli info build/smoke.png --compact'
+
+    - name: Package
+      run: tar -czf "photoc-${{ github.ref_name }}-linux-${{ matrix.arch }}.tar.gz" -C apps photoc photoc-cli
+
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-${{ matrix.arch }}
+        path: photoc-*.tar.gz
+
+  windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            msystem: UCRT64
+            arch: x86_64
+            experimental: false
+          # Windows on Arm is newer; a failure here doesn't hold back the release
+          - runner: windows-11-arm
+            msystem: CLANGARM64
+            arch: aarch64
+            experimental: true
+    runs-on: ${{ matrix.runner }}
+    continue-on-error: ${{ matrix.experimental }}
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # openmp: clang toolchains don't ship OpenMP; ntldd lists the DLLs to bundle
+    - name: Set up MSYS2
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: ${{ matrix.msystem }}
+        update: true
+        install: git
+        pacboy: >-
+          toolchain:p cmake:p ninja:p pkgconf:p openmp:p ntldd:p
+          nlohmann-json:p lcms2:p libpng:p libjpeg-turbo:p libtiff:p libwebp:p giflib:p zlib:p
+          freetype:p harfbuzz:p fontconfig:p fribidi:p libunibreak:p
+
+    - name: Build
+      run: ./build.sh
+
+    # The programs plus every DLL they load from the MSYS2 environment
+    - name: Bundle
+      run: |
+        set -e
+        mkdir -p dist
+        cp build/src/apps/photoc/photoc.exe build/src/apps/photoc-cli/photoc-cli.exe dist/
+        for exe in dist/*.exe; do
+          ntldd -R "$exe" | sed -n 's/.*=> \(.*\) (0x.*/\1/p' | while read -r dll; do
+            dll="$(cygpath -u "$dll")"
+            case "$dll" in "$MSYSTEM_PREFIX"/*) cp -n "$dll" dist/ ;; esac
+          done
+        done
+
+    # PowerShell doesn't have MSYS2 on PATH, so this fails if the bundle is missing a DLL
+    - name: Test
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $PSNativeCommandUseErrorActionPreference = $true
+        ./dist/photoc-cli.exe --help | Out-Null
+        ./dist/photoc-cli.exe convert assets/photoc-icon.jpg build/smoke.png
+        ./dist/photoc-cli.exe info build/smoke.png --compact
+
+    - name: Package
+      shell: pwsh
+      run: Compress-Archive -Path dist/* -DestinationPath "photoc-${{ github.ref_name }}-windows-${{ matrix.arch }}.zip"
+
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-${{ matrix.arch }}
+        path: photoc-*.zip
+
+  release:
+    needs: [linux, windows]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download archives
+      uses: actions/download-artifact@v4
+      with:
+        path: dist
+        merge-multiple: true
+
+    - name: Publish release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: dist/*
+        generate_release_notes: true
