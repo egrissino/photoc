@@ -60,10 +60,10 @@ jobs:
             arch: x86_64
             experimental: false
           # Windows on Arm is newer; a failure here doesn't hold back the release
-          - runner: windows-11-arm
-            msystem: CLANGARM64
-            arch: aarch64
-            experimental: true
+          # - runner: windows-11-arm
+          #   msystem: CLANGARM64
+          #   arch: aarch64
+          #   experimental: true
     runs-on: ${{ matrix.runner }}
     continue-on-error: ${{ matrix.experimental }}
 
@@ -75,7 +75,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # openmp: clang toolchains don't ship OpenMP; ntldd lists the DLLs to bundle
+    # Both toolchains include OpenMP (libgomp, llvm-openmp); ntldd lists the DLLs to bundle
     - name: Set up MSYS2
       uses: msys2/setup-msys2@v2
       with:
@@ -83,7 +83,7 @@ jobs:
         update: true
         install: git
         pacboy: >-
-          toolchain:p cmake:p ninja:p pkgconf:p openmp:p ntldd:p
+          toolchain:p cmake:p ninja:p pkgconf:p ntldd:p
           nlohmann-json:p lcms2:p libpng:p libjpeg-turbo:p libtiff:p libwebp:p giflib:p zlib:p
           freetype:p harfbuzz:p fontconfig:p fribidi:p libunibreak:p
 
