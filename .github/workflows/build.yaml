@@ -17,6 +17,6 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Build
-      run: ./build.sh
+      run: ./docker-build.sh
       env:
           BUILDKIT_PROGRESS: plain

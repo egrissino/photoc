@@ -8,20 +8,7 @@ RUN apt-get install -y --no-install-recommends build-essential cmake ninja-build
     file desktop-file-utils
 RUN rm -rf /var/lib/apt/lists/*
 
-RUN git clone --depth 1 --branch release-3.4.18 https://github.com/libsdl-org/SDL.git /tmp/SDL
-RUN cmake -S /tmp/SDL -B /tmp/SDL/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST_LIBRARY=OFF -DSDL_WAYLAND=OFF -DSDL_VULKAN=OFF -DCMAKE_INSTALL_PREFIX=/usr/local
-RUN cmake --build /tmp/SDL/build && cmake --install /tmp/SDL/build
-RUN rm -rf /tmp/SDL
-
-RUN git clone --depth 1 --branch v1.92.9b-docking https://github.com/ocornut/imgui.git /opt/imgui
-
 WORKDIR /src
-
-# Compiles PhotoC from the sources in the build context
-FROM dev AS build
-
-COPY . /src
-RUN cmake -S /src -B /src/build -G Ninja -DCMAKE_BUILD_TYPE=Release && cmake --build /src/build
 
 # Runtime image, used from a browser through noVNC: docker build --target local -t photoc:local .
 # zenity draws the open and save dialogs (SDL falls back to it when there is no desktop portal)
@@ -40,7 +27,9 @@ RUN mkdir -m 1777 /tmp/.X11-unix
 
 COPY docker/index.html /usr/share/novnc/index.html
 COPY docker/entrypoint.sh /usr/local/bin/photoc-vnc
-COPY --from=build /src/build/src/apps/photoc/photoc /src/build/src/apps/photoc-cli/photoc-cli /usr/local/bin/
+
+COPY apps/photoc /usr/local/bin/
+COPY apps/photoc-cli /usr/local/bin
 
 EXPOSE 6080
 WORKDIR /local
