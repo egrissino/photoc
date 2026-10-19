@@ -60,10 +60,10 @@ jobs:
             arch: x86_64
             experimental: false
           # Windows on Arm is newer; a failure here doesn't hold back the release
-          - runner: windows-11-arm
-            msystem: CLANGARM64
-            arch: aarch64
-            experimental: true
+          # - runner: windows-11-arm
+          #   msystem: CLANGARM64
+          #   arch: aarch64
+          #   experimental: true
     runs-on: ${{ matrix.runner }}
     continue-on-error: ${{ matrix.experimental }}
 
