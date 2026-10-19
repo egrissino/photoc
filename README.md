@@ -5,7 +5,7 @@ A C port of PhotoCraft with builds for Linux, Windows, and Mac
 ## Run with Pre-built image
 
 ```sh
-git pull github.com/egrissino/photoc
+git clone https://github.com/egrissino/photoc.git
 docker-compose up -d
 ```
 
