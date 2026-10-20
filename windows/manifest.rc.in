@@ -1,2 +1,4 @@
 // 1 = CREATEPROCESS_MANIFEST_RESOURCE_ID, 24 = RT_MANIFEST
 1 24 "@PC_MANIFEST@"
+// Explorer shows the first icon in the file
+1 ICON "@PC_ICON@"

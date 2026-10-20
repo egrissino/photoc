@@ -138,11 +138,15 @@ int main (int argc, char** argv)
         argv += 3;
         argc -= 3;
     }
+#ifdef __linux__
+    /* Linux runs on X11 only (XWayland on a Wayland desktop); elsewhere SDL has no x11 driver and
+       would fail to start. */
     SDL_SetHint (SDL_HINT_VIDEO_DRIVER, "x11");
     /* SDL asks the compositor to stop compositing its windows (for games); for an editor that
        opens dialogs over itself, GNOME then spends seconds switching compositing back on each
        time one appears. */
     SDL_SetHint (SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0");
+#endif
     if (!SDL_Init (SDL_INIT_VIDEO))
     {
         fprintf (stderr, "error: cannot start the display: %s\n", SDL_GetError ());
