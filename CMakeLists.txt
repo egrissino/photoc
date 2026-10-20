@@ -9,6 +9,25 @@ endif()
 
 include(FetchContent)
 
+# Windows has none of the libraries, so they are linked into the programs, which then need only
+# the DLLs that come with Windows. Set before the libraries are looked up below.
+if(WIN32)
+  option(PHOTOC_STATIC "Link the libraries into the programs instead of shipping DLLs beside them" ON)
+endif()
+if(PHOTOC_STATIC)
+  # The .a archives, not the .dll.a import libraries
+  set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+  # pkg-config then also lists each library's own dependencies, and flags such as
+  # FRIBIDI_LIB_STATIC that headers need to declare the functions as static instead of DLL imports
+  set(PKG_CONFIG_ARGN --static)
+  # libstdc++, libgcc, libgomp and winpthreads too
+  add_link_options(-static)
+  # libintl (glib's, through harfbuzz) uses iconv but has no pkg-config file to say so; the
+  # standard libraries go last on the link line, after everything that needs them
+  string(APPEND CMAKE_C_STANDARD_LIBRARIES " -liconv")
+  string(APPEND CMAKE_CXX_STANDARD_LIBRARIES " -liconv")
+endif()
+
 find_package(PkgConfig REQUIRED)
 find_package(nlohmann_json 3.11 REQUIRED)
 find_package(OpenMP REQUIRED)
@@ -63,12 +82,18 @@ target_include_directories(imgui SYSTEM PUBLIC ${IMGUI_DIR} ${IMGUI_DIR}/backend
 target_link_libraries(imgui PUBLIC SDL3::SDL3-static OpenGL::GL)
 
 # Windows programs get a manifest that sets the process code page to UTF-8, so fopen and the
-# ANSI Win32 calls take the UTF-8 paths SDL and the command line hand them (needs the UCRT runtime)
+# ANSI Win32 calls take the UTF-8 paths SDL and the command line hand them (needs the UCRT runtime),
+# and the icon Explorer and the taskbar show for the .exe file (windows/photoc.ico, made from
+# assets/photoc-icon.jpg with photoc-cli)
 function(pc_windows_manifest target)
   if(WIN32)
     set(PC_MANIFEST ${PROJECT_SOURCE_DIR}/windows/photoc.manifest)
-    configure_file(${PROJECT_SOURCE_DIR}/windows/manifest.rc.in ${CMAKE_CURRENT_BINARY_DIR}/${target}-manifest.rc @ONLY)
-    target_sources(${target} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/${target}-manifest.rc)
+    set(PC_ICON ${PROJECT_SOURCE_DIR}/windows/photoc.ico)
+    set(rc ${CMAKE_CURRENT_BINARY_DIR}/${target}-manifest.rc)
+    configure_file(${PROJECT_SOURCE_DIR}/windows/manifest.rc.in ${rc} @ONLY)
+    target_sources(${target} PRIVATE ${rc})
+    # The resource compiler doesn't report the files it embeds, so they are named here
+    set_source_files_properties(${rc} PROPERTIES OBJECT_DEPENDS "${PC_MANIFEST};${PC_ICON}")
   endif()
 endfunction()
 
