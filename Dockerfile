@@ -1,4 +1,4 @@
-# Build environment (build.sh picks the platform; ARCH names it for the packaging tools)
+# Build environment
 FROM ubuntu:noble-20250529 AS dev
 
 COPY native-setup.sh /tmp/native-setup.sh
