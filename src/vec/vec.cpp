@@ -115,7 +115,7 @@ namespace vec
         out->n_points   = (short) o->pts.size ();
         out->n_contours = (short) o->contours.size ();
         out->points     = o->pts.data ();
-#if _WIN32
+#if FREETYPE_MAJOR > 2 || (FREETYPE_MAJOR == 2 && (FREETYPE_MINOR > 13 || (FREETYPE_MINOR == 13 && FREETYPE_PATCH >= 3)))
         out->tags       = reinterpret_cast<unsigned char*> (o->tags.data ());
         out->contours   = reinterpret_cast<short unsigned int*> (o->contours.data ());
 #else

@@ -33,7 +33,7 @@ pc_font_mono_end:
     .global pc_app_icon
     .global pc_app_icon_end
 pc_app_icon:
-    .incbin "assets/photoc-icon.jpg"
+    .incbin "assets/photoc.png"
 pc_app_icon_end:
 #ifdef __ELF__
     .section .note.GNU-stack,"",@progbits
