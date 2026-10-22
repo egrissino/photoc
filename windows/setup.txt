@@ -1,0 +1,20 @@
+
+Open Powershell from the start menu
+
+```powershell
+winget install MSYS2.MSYS2
+```
+
+Close Powershell after install completes
+
+Open MSYS2 UCRT64 from the start menu
+
+Run these commands one line at a time
+```sh
+pacman -S --needed git mingw-w64-ucrt-x86_64-{toolchain,cmake,ninja,pkgconf,nlohmann-json,lcms2,libpng,libjpeg-turbo,libtiff,libwebp,giflib,zlib,freetype,harfbuzz,fontconfig,fribidi,libunibreak,mesa}
+cd ~
+git clone https://github.com/egrissino/photoc.git
+cd photoc
+git checkout master
+.\build.sh
+```

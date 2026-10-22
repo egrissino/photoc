@@ -1,19 +1,8 @@
 # Build environment (build.sh picks the platform; ARCH names it for the packaging tools)
 FROM ubuntu:noble-20250529 AS dev
 
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends build-essential cmake ninja-build pkg-config nlohmann-json3-dev liblcms2-dev libpng-dev libjpeg-turbo8-dev \
-    git ca-certificates libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxss-dev libxfixes-dev libxkbcommon-dev libxtst-dev libgl-dev libegl-dev libdbus-1-dev \
-    libfreetype-dev libharfbuzz-dev libfontconfig-dev libfribidi-dev libunibreak-dev libtiff-dev libwebp-dev libgif-dev \
-    file desktop-file-utils
-RUN rm -rf /var/lib/apt/lists/*
-
-RUN git clone --depth 1 --branch release-3.4.18 https://github.com/libsdl-org/SDL.git /tmp/SDL
-RUN cmake -S /tmp/SDL -B /tmp/SDL/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST_LIBRARY=OFF -DSDL_WAYLAND=OFF -DSDL_VULKAN=OFF -DCMAKE_INSTALL_PREFIX=/usr/local
-RUN cmake --build /tmp/SDL/build && cmake --install /tmp/SDL/build
-RUN rm -rf /tmp/SDL
-
-RUN git clone --depth 1 --branch v1.92.9b-docking https://github.com/ocornut/imgui.git /opt/imgui
+COPY native-setup.sh /tmp/native-setup.sh
+RUN bash /tmp/native-setup.sh && rm -rf /var/lib/apt/lists/* /tmp/native-setup.sh
 
 WORKDIR /src
 
